@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 const BASE_DIR =  __DIR__ . '/../';
 const APP_DIR = BASE_DIR . 'app/';
 

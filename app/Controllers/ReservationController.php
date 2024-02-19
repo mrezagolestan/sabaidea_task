@@ -3,15 +3,19 @@
 namespace App\Controllers;
 
 
+use App\Repositories\DayRepository;
 use App\Repositories\HourRepository;
-use Core\Request;
+use App\Repositories\ReservationRepository;
+use Core\Auth;
 
 class ReservationController extends Controller
 {
 
     public function __construct(
-        private readonly HourRepository $hourRepository,
-        private readonly Request $request,
+        private readonly HourRepository        $hourRepository,
+        private readonly DayRepository         $dayRepository,
+        private readonly ReservationRepository $reservationRepository,
+        private readonly Auth                  $auth,
     )
     {
 
@@ -19,15 +23,41 @@ class ReservationController extends Controller
 
     public function index()
     {
-        //echo $this->request;
-        var_dump($this->request->id);
         $hours = $this->hourRepository->getAll();
+        $days = $this->dayRepository->getAll();
 
-        view('reservations/index', compact('hours'));
+        $from = $days[0]['date'];
+        $to = $days[count($days) - 1]['date'];
+        $reserves = $this->reservationRepository->reserveList($from, $to);
+        $currentUser = $this->auth->getUserId();
+
+
+        view('reservations/index', compact('hours', 'days', 'reserves', 'currentUser'));
     }
 
-    public function reserve($timeId)
+    public function reserve(int $hourId, string $date)
     {
-        echo 'detail = ' . $id;
+
+        $exist = $this->reservationRepository->reserveExist($hourId, $date);
+
+        if ($exist && $exist['user_id'] == $this->auth->getUserId()) {
+            setFlashMessage('danger', 'این زمان توسط فرد دیگری رزرو شده است و قابلیت رزرو مجدد ندارد');
+        }
+
+
+        if ($exist) {
+            if ($this->reservationRepository->cancelReserve($hourId, $date)) {
+                setFlashMessage('success', 'رزرو شما با موفقیت کنسل شد');
+            } else {
+                setFlashMessage('danger', 'رزرو کنسل نشد');
+            }
+        } else {
+            if ($this->reservationRepository->reserve($hourId, $date, $this->auth->getUserId())) {
+                setFlashMessage('success', 'رزرو شما با موفقیت انجام شد');
+            } else {
+                setFlashMessage('danger', 'رزرو انجام نشد');
+            }
+        }
+        header('Location: /');
     }
 }

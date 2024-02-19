@@ -6,7 +6,8 @@ use Core\DB;
 
 class Repository
 {
-    protected string $table;
+    protected string $table = "";
+
 
     public function __construct(
         protected readonly DB $db

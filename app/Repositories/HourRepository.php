@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use Core\DB;
 
 class HourRepository extends Repository
 {

@@ -17,8 +17,9 @@ down:
 shell:
 	docker-compose -f $(COMPOSE_FILES) exec php bash
 
-shell-as-root:
-	docker-compose -f $(COMPOSE_FILES) exec --user=$(ROOT_USER) app bash
+provision:
+	docker-compose -f $(COMPOSE_FILES) exec --user=$(ROOT_USER) php composer install
+	docker-compose -f $(COMPOSE_FILES) exec --user=$(ROOT_USER) php php -f core/provision.php
 
 logs: 
 	@docker-compose logs -f
